@@ -4,356 +4,682 @@ index.html
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Safe Subscription Demo — Prototype</title>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<title>OmniKit — Advanced Single-file Web App</title>
 <style>
-  /* Modern compact UI styles */
+  /* === Minimal modern UI style === */
   :root{
-    --bg:#0f1724; --card:#071024; --accent:#7c3aed; --muted:#9aa4b2;
-    --glass: rgba(255,255,255,0.03);
-    --radius:12px; --maxw:980px; font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;
+    --bg:#0b1020; --card:#0f1724; --muted:#9aa4b2; --accent:#7c3aed; --glass: rgba(255,255,255,0.03);
+    --radius:12px; --glass-2: rgba(255,255,255,0.02);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    color-scheme: dark;
   }
   *{box-sizing:border-box}
-  body{margin:0; min-height:100vh; background:
-    linear-gradient(180deg,#041025 0%, #071427 40%), var(--bg); color:#e6eef6; padding:28px;
-    -webkit-font-smoothing:antialiased}
-  .wrap{max-width:var(--maxw); margin:0 auto; display:grid; gap:18px; grid-template-columns: 1fr 380px;}
-  header{display:flex; gap:12px; align-items:center}
-  h1{margin:0; font-size:20px}
+  html,body{height:100%; margin:0; background:linear-gradient(180deg,#031025 0%, #071227 60%); color:#eaf2ff}
+  .app{max-width:1200px; margin:28px auto; display:grid; grid-template-columns: 1fr 360px; gap:18px; padding:18px;}
+  header{grid-column:1/-1; display:flex; align-items:center; gap:14px}
+  h1{margin:0; font-size:18px}
   .subtitle{color:var(--muted); font-size:13px}
-  .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); padding:16px; border-radius:var(--radius); border:1px solid rgba(255,255,255,0.04)}
-  form{display:flex; flex-direction:column; gap:10px}
-  label{font-size:13px; color:var(--muted)}
-  input[type="email"], input[type="text"], select{padding:10px; border-radius:8px; border:none; background:var(--glass); color:inherit; font-size:14px}
-  .row{display:flex; gap:8px}
-  .btn{background:linear-gradient(90deg,var(--accent), #5b21b6); padding:10px 14px; border-radius:10px; border:none; color:white; cursor:pointer; font-weight:700}
-  .ghost{background:transparent; border:1px solid rgba(255,255,255,0.06); padding:8px 10px; border-radius:8px; color:var(--muted); cursor:pointer}
-  .note{color:var(--muted); font-size:13px}
-  .small{font-size:13px; color:var(--muted)}
-  .list{display:flex; flex-direction:column; gap:8px; margin-top:8px}
-  .sub-item{display:flex; justify-content:space-between; gap:8px; align-items:center; padding:10px; border-radius:10px; background:rgba(255,255,255,0.01); border:1px solid rgba(255,255,255,0.02)}
-  .analytics{display:flex; flex-direction:column; gap:8px}
-  pre {background:rgba(255,255,255,0.02); padding:10px; border-radius:8px; overflow:auto; color:var(--muted)}
-  footer{grid-column:1/-1; color:var(--muted); text-align:center; font-size:13px; margin-top:6px}
-  @media (max-width:900px){ .wrap{grid-template-columns:1fr} }
+  .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:var(--radius); padding:14px; border:1px solid rgba(255,255,255,0.04); box-shadow:0 8px 30px rgba(3,7,18,0.6)}
+  .toolbar{display:flex; gap:8px; align-items:center}
+  .btn{background:linear-gradient(90deg,var(--accent), #5b21b6); color:white; border:none; padding:8px 12px; border-radius:10px; cursor:pointer; font-weight:700}
+  .ghost{background:transparent; border:1px solid rgba(255,255,255,0.05); padding:8px 10px; border-radius:10px; color:var(--muted); cursor:pointer}
+  /* Left column layout */
+  .main{display:grid; gap:12px}
+  .row{display:flex; gap:12px; align-items:center}
+  input[type="search"], input[type="text"], textarea, select {background:var(--glass); color:inherit; border:none; padding:10px; border-radius:8px; width:100%; font-size:14px}
+  textarea{min-height:120px; resize:vertical}
+  .mini{font-size:13px; color:var(--muted)}
+  /* Right column (sidebar) */
+  .sidebar{display:flex; flex-direction:column; gap:12px}
+  .list{display:flex; flex-direction:column; gap:8px; max-height:420px; overflow:auto; padding-right:6px}
+  .item{display:flex; justify-content:space-between; gap:8px; align-items:center; padding:8px; border-radius:8px; background:var(--glass-2); border:1px solid rgba(255,255,255,0.02)}
+  .kbd{background:rgba(0,0,0,0.2); padding:4px 8px; border-radius:6px; font-weight:700; font-size:13px}
+  footer{grid-column:1/-1; text-align:center; color:var(--muted); font-size:13px; margin-top:6px}
+  /* responsive */
+  @media (max-width:1000px){ .app{grid-template-columns:1fr} .sidebar{order:2} }
+  /* Command palette */
+  #palette{position:fixed; left:50%; top:18%; transform:translateX(-50%); width:720px; max-width:92%; display:none; z-index:120; border-radius:12px; padding:10px; border:1px solid rgba(255,255,255,0.04); background:linear-gradient(180deg, rgba(8,12,24,0.98), rgba(6,8,16,0.96)); box-shadow:0 24px 80px rgba(2,6,23,0.8)}
+  #palette input{width:100%; padding:12px; border-radius:8px; border:none; outline:none; background:rgba(255,255,255,0.02); color:inherit; font-size:15px}
+  #palette .result{padding:8px; border-radius:8px; margin-top:6px; cursor:pointer} 
+  #palette .result:hover{background:rgba(255,255,255,0.02)}
+  /* small helpers */
+  .muted{color:var(--muted)}
+  .center{display:flex; align-items:center; justify-content:center}
+  .file-preview{max-width:100%; border-radius:8px; display:block}
+  .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+  .pill{padding:6px 10px; border-radius:999px; background:rgba(255,255,255,0.02); font-weight:700}
+  pre{white-space:pre-wrap; word-break:break-word; font-size:13px}
 </style>
 </head>
 <body>
-  <div class="wrap">
+  <div class="app" role="application" aria-label="OmniKit">
     <header>
       <div>
-        <h1>Subscription UX — Safe Demo</h1>
-        <div class="subtitle">Prototype UI with simulated server-side protections (for demo only)</div>
+        <h1>OmniKit</h1>
+        <div class="subtitle">A powerful single-file toolkit — search, notes, images, media, files & command palette</div>
       </div>
-      <div style="margin-left:auto" class="small">Demo mode — not connected to external services</div>
+      <div style="margin-left:auto" class="toolbar">
+        <button class="ghost" id="openPalette">⌘/Ctrl K</button>
+        <button class="ghost" id="exportStateBtn">Export</button>
+        <button class="ghost" id="importStateBtn">Import</button>
+        <button class="btn" id="themeBtn">Toggle Theme</button>
+      </div>
     </header>
 
-    <!-- Main content -->
-    <main class="card">
-      <h2 style="margin-top:0">Subscribe to a Channel</h2>
-      <form id="subForm" autocomplete="off" novalidate>
-        <label for="channel">Choose channel</label>
-        <select id="channel" required>
-          <option value="dev-tutorials">Dev Tutorials</option>
-          <option value="music-beats">Music Beats</option>
-          <option value="gaming-insights">Gaming Insights</option>
-          <option value="daily-vlogs">Daily Vlogs</option>
-          <option value="ai-lab">AI Lab</option>
-        </select>
-
-        <label for="email">Your email (verification required)</label>
-        <input id="email" type="email" placeholder="you@example.com" required>
-
-        <div class="row">
-          <div style="flex:1">
-            <label for="display">Display name (optional)</label>
-            <input id="display" type="text" placeholder="Your public name (optional)">
+    <!-- LEFT: main area -->
+    <main class="main">
+      <!-- Quick Search -->
+      <section class="card" aria-labelledby="search-title">
+        <div style="display:flex; justify-content:space-between; align-items:center">
+          <div>
+            <h2 id="search-title" style="margin:0">Quick Search</h2>
+            <div class="mini">Open results in a new tab (this app doesn't crawl the web).</div>
           </div>
-          <div style="width:160px">
-            <label class="small">Subscription type</label>
-            <select id="plan">
-              <option value="free">Free</option>
-              <option value="premium">Premium</option>
-            </select>
+          <div class="mini muted">Engines:
+            <span class="pill">DuckDuckGo</span>
+            <span class="pill">Google</span>
+            <span class="pill">Bing</span>
           </div>
         </div>
+        <div style="margin-top:10px" class="row">
+          <input id="searchQuery" type="search" placeholder="Search the web..." aria-label="Search query">
+          <select id="searchEngine" style="width:160px">
+            <option value="https://duckduckgo.com/?q=">DuckDuckGo</option>
+            <option value="https://www.google.com/search?q=">Google</option>
+            <option value="https://www.bing.com/search?q=">Bing</option>
+          </select>
+          <button class="btn" id="doSearch">Search</button>
+        </div>
+      </section>
 
-        <!-- CAPTCHA placeholder: in production integrate real CAPTCHA (reCAPTCHA / hCaptcha) -->
-        <div>
-          <label class="small">Anti-bot check</label>
-          <div id="captchaBox" style="padding:10px; border-radius:8px; background:var(--glass); display:flex; align-items:center; gap:8px">
-            <input type="checkbox" id="fakeCaptcha"> <label for="fakeCaptcha" class="small">I'm not a bot (demo checkbox — replace with real CAPTCHA)</label>
+      <!-- Notes (Markdown) -->
+      <section class="card" aria-labelledby="notes-title">
+        <h2 id="notes-title" style="margin:0">Notes (Markdown)</h2>
+        <div class="mini">Write notes, preview markdown, autosaves locally.</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px">
+          <textarea id="noteEditor" placeholder="# My note"></textarea>
+          <div id="notePreview" style="background:var(--glass); padding:10px; border-radius:8px; overflow:auto"></div>
+        </div>
+        <div style="display:flex; gap:8px; margin-top:8px">
+          <button class="btn" id="saveNote">Save Note</button>
+          <button class="ghost" id="newNote">New</button>
+          <button class="ghost" id="exportNote">Export</button>
+          <div style="margin-left:auto" class="mini muted">Shortcut: Ctrl/Cmd + S to save</div>
+        </div>
+        <div id="notesList" style="margin-top:10px"></div>
+      </section>
+
+      <!-- To-Do -->
+      <section class="card" aria-labelledby="todo-title">
+        <h2 id="todo-title" style="margin:0">To-Do</h2>
+        <div class="mini">Tasks with priority and due date.</div>
+        <div style="margin-top:8px; display:flex; gap:8px">
+          <input id="taskText" type="text" placeholder="New task...">
+          <select id="taskPrio">
+            <option value="low">Low</option><option value="med">Medium</option><option value="high">High</option>
+          </select>
+          <input id="taskDue" type="date">
+          <button class="btn" id="addTask">Add</button>
+        </div>
+        <div id="taskList" style="margin-top:10px" class="list"></div>
+      </section>
+
+      <!-- Image Editor + Media Player -->
+      <section class="card" aria-labelledby="media-title">
+        <div style="display:flex; justify-content:space-between; align-items:center">
+          <h2 id="media-title" style="margin:0">Media & Images</h2>
+          <div class="mini muted">Upload files in the sidebar to use them here.</div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 220px; gap:8px; margin-top:8px">
+          <div>
+            <canvas id="imageCanvas" style="width:100%; border-radius:8px; background:rgba(0,0,0,0.1)"></canvas>
+            <div style="display:flex; gap:8px; margin-top:8px">
+              <button class="btn" id="applyGray">Grayscale</button>
+              <button class="btn" id="applyInvert">Invert</button>
+              <button class="ghost" id="resetImage">Reset</button>
+              <button class="ghost" id="downloadImage">Download PNG</button>
+            </div>
+          </div>
+          <div>
+            <div class="mini">Media Player</div>
+            <div id="mediaPlayerArea" style="margin-top:8px;">
+              <video id="videoElem" controls style="width:100%; border-radius:8px; display:none"></video>
+              <audio id="audioElem" controls style="width:100%; border-radius:8px; display:none"></audio>
+              <div id="noMedia" class="center mini" style="height:120px">No audio/video selected</div>
+            </div>
+            <div style="margin-top:8px; display:flex; gap:8px">
+              <button class="ghost" id="playSelected">Play Selected</button>
+              <button class="ghost" id="stopMedia">Stop</button>
+            </div>
           </div>
         </div>
+      </section>
 
-        <div style="display:flex; gap:8px; align-items:center; margin-top:6px">
-          <button id="subscribeBtn" class="btn" type="button">Subscribe</button>
-          <button id="verifyBtn" class="ghost" type="button">Simulate verify email</button>
-          <div class="note" id="statusNote" style="margin-left:auto">Ready</div>
+      <!-- Quick Tools -->
+      <section class="card" aria-labelledby="tools-title">
+        <h2 id="tools-title" style="margin:0">Quick Tools</h2>
+        <div class="mini">Command palette (Ctrl/Cmd+K), keyboard shortcuts, and sandboxed JS runner.</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px">
+          <div>
+            <label class="mini">Command / JS (safe sandbox)</label>
+            <textarea id="codeArea" placeholder="// type a short script to run (DOM access is sandboxed)"></textarea>
+            <div style="display:flex; gap:8px; margin-top:8px">
+              <button class="btn" id="runCode">Run</button>
+              <button class="ghost" id="clearConsole">Clear</button>
+            </div>
+            <pre id="consoleOut" style="height:120px; margin-top:8px; overflow:auto" aria-live="polite"></pre>
+          </div>
+          <div>
+            <label class="mini">Color / Gradient</label>
+            <input id="c1" type="color" value="#7c3aed">
+            <input id="c2" type="color" value="#60a5fa">
+            <div style="margin-top:8px; height:80px; border-radius:8px; background:linear-gradient(90deg,#7c3aed,#60a5fa)" id="gradientPreview"></div>
+            <div style="display:flex; gap:8px; margin-top:8px">
+              <button class="btn" id="applyGradient">Apply Gradient BG</button>
+              <button class="ghost" id="clearBg">Clear BG</button>
+            </div>
+          </div>
         </div>
-        <div class="note">This demo **simulates** server-side rate limiting and email verification.</div>
-      </form>
-
-      <hr style="margin:12px 0; border:none; height:1px; background:rgba(255,255,255,0.03)">
-
-      <h3 style="margin:0">Your local subscriptions (demo)</h3>
-      <div id="subsList" class="list">
-        <!-- items injected here -->
-      </div>
+      </section>
     </main>
 
-    <!-- Sidebar: analytics & controls -->
-    <aside class="card">
-      <h3 style="margin-top:0">Demo Controls & Analytics</h3>
-      <div class="analytics">
-        <div class="small">Note: real systems must treat high-frequency subscription attempts as abuse.</div>
-        <div style="display:flex; gap:8px">
-          <button id="clearLocal" class="ghost">Clear local demo subscriptions</button>
-          <button id="resetServer" class="ghost">Reset simulated server</button>
+    <!-- RIGHT: sidebar -->
+    <aside class="sidebar">
+      <!-- File Manager -->
+      <div class="card" aria-labelledby="files-title">
+        <div style="display:flex; justify-content:space-between; align-items:center">
+          <h3 id="files-title" style="margin:0">Files</h3>
+          <div class="mini muted">Upload & preview</div>
         </div>
-        <div style="margin-top:8px">
-          <label class="small">Simulated server state</label>
-          <pre id="serverState" style="height:120px">loading...</pre>
+        <input id="fileInput" type="file" multiple style="margin-top:8px">
+        <div id="filesList" style="margin-top:10px" class="list"></div>
+        <div style="display:flex; gap:8px; margin-top:8px">
+          <button class="ghost" id="clearFiles">Clear Files</button>
+          <button class="ghost" id="exportFiles">Export List</button>
         </div>
-        <div style="margin-top:8px">
-          <label class="small">Event log (recent)</label>
-          <pre id="eventLog" style="height:160px">[]</pre>
+      </div>
+
+      <!-- Shortcuts / Actions -->
+      <div class="card">
+        <h4 style="margin:0">Shortcuts</h4>
+        <div class="mini muted" style="margin-top:6px">Use these to speed up common tasks</div>
+        <div style="margin-top:8px; display:flex; flex-direction:column; gap:8px">
+          <div class="item"><div>Open Command Palette</div><div class="kbd">Ctrl/Cmd + K</div></div>
+          <div class="item"><div>Save Note</div><div class="kbd">Ctrl/Cmd + S</div></div>
+          <div class="item"><div>Run Code</div><div class="kbd">Ctrl/Cmd + Enter</div></div>
+        </div>
+      </div>
+
+      <!-- Short Notes -->
+      <div class="card">
+        <h4 style="margin:0">Quick Clips</h4>
+        <div class="mini muted">Small bits you can paste later</div>
+        <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap">
+          <button class="ghost" id="clip1">Hello</button>
+          <button class="ghost" id="clip2">Todo: Read docs</button>
+          <button class="ghost" id="clip3">Mail: name@example.com</button>
         </div>
       </div>
     </aside>
 
-    <footer>
-      Demo for prototyping. For real apps: implement server-side verification, limits, and anti-abuse measures.
-    </footer>
+    <footer>OmniKit — single-file toolkit. This is client-side only. Extend it by editing the file.</footer>
+  </div>
+
+  <!-- Command palette UI -->
+  <div id="palette" role="dialog" aria-label="Command palette">
+    <input id="paletteInput" placeholder="Type a command: search, new note, add task, open files..." />
+    <div id="paletteResults"></div>
   </div>
 
 <script>
-/*
-  SAFE DEMO:
-  - This is purely client-side simulation.
-  - Do NOT use this to attempt automated creation of real accounts/subscriptions.
-  - Production MUST implement server-side email verification, rate-limits, CAPTCHAs, and logging.
-*/
+/* =========================
+   OmniKit: main JavaScript
+   - All data stored in localStorage under key "omnikit_state_v1"
+   - This file is intentionally self-contained and safe (no server calls)
+   - Comments show where to extend with server APIs if you want
+   ========================= */
 
-/* -------------------------
-   Simulated server (client-side) — for demo only
-   - Keeps a record of subscription attempts keyed by IP-like token
-   - Enforces per-email / per-token cooldowns and global daily cap
-   - Records events for analytics
-   In production, these must be implemented server-side and cannot be trusted on the client.
--------------------------*/
-const SERVER = (() => {
-  const state = {
-    subscriptions: [],         // accepted subscriptions (email + channel + timestamp)
-    attempts: {},              // attempts per token: { token: [timestamps] }
-    events: [],                // event log
-    maxPerTokenPerMinute: 5,   // demo limits
-    maxPerEmailPerDay: 3,      // demo: email can only subscribe N times/day
-    globalDailyCap: 1000,      // demo global cap
-    resetAt: Date.now() + 24*3600*1000
-  };
+const STORAGE_KEY = 'omnikit_state_v1';
 
-  function now(){ return Date.now(); }
-  function tokenKey() {
-    // in demo we use a persistent token per browser (like a device id)
-    let t = localStorage.getItem('demo_device_token');
-    if(!t){ t = 'tok_' + Math.random().toString(36).slice(2,10); localStorage.setItem('demo_device_token', t); }
-    return t;
-  }
+// default app state
+const defaultState = {
+  notes: [],           // {id, title, body, created}
+  tasks: [],           // {id, text, prio, due, done, created}
+  files: [],           // {id, name, type, size, dataUrl}
+  settings: { theme:'dark', gradient:null }
+};
 
-  function logEvent(e){
-    state.events.unshift({ ts: now(), ...e });
-    // limit to last 200 events
-    if(state.events.length>200) state.events.length = 200;
-  }
+let state = loadState();
 
-  function canAttempt(email){
-    // check global cap
-    if(state.subscriptions.length >= state.globalDailyCap){
-      logEvent({ type:'rejected', reason:'global_cap', email });
-      return { ok:false, reason:'Global daily cap reached' };
+// -------------------- helpers --------------------
+function uid(prefix='id'){ return prefix + '_' + Math.random().toString(36).slice(2,9); }
+function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function loadState(){
+  try{
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || JSON.parse(JSON.stringify(defaultState));
+  } catch(e){ return JSON.parse(JSON.stringify(defaultState)); }
+}
+function now(){ return Date.now(); }
+function el(id){ return document.getElementById(id); }
+function bySel(sel){ return document.querySelector(sel); }
+function clamp(n,a,b){ return Math.max(a, Math.min(b,n)); }
+
+// -------------------- UI init/load --------------------
+document.addEventListener('DOMContentLoaded', () => {
+  initSearch();
+  initNotes();
+  initTasks();
+  initFiles();
+  initMediaAndImages();
+  initPalette();
+  initQuickClips();
+  initShortcuts();
+  renderAll();
+});
+
+// -------------------- Search --------------------
+function initSearch(){
+  el('doSearch').addEventListener('click', () => doSearch());
+  el('searchQuery').addEventListener('keydown', e => { if(e.key==='Enter') doSearch(); });
+}
+function doSearch(){
+  const q = el('searchQuery').value.trim();
+  if(!q) return alert('Type a search query.');
+  const engine = el('searchEngine').value;
+  window.open(engine + encodeURIComponent(q), '_blank');
+}
+
+// -------------------- Notes --------------------
+function initNotes(){
+  el('noteEditor').addEventListener('input', () => {
+    renderNotePreview();
+  });
+  el('saveNote').addEventListener('click', saveCurrentNote);
+  el('newNote').addEventListener('click', newNote);
+  el('exportNote').addEventListener('click', exportCurrentNote);
+  // Ctrl/Cmd + S save shortcut
+  window.addEventListener('keydown', e => {
+    if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's'){
+      e.preventDefault();
+      saveCurrentNote();
     }
-    // check email daily
-    const dayAgo = now() - 24*3600*1000;
-    const emailCount = state.subscriptions.filter(s => s.email === email && s.ts > dayAgo).length;
-    if(emailCount >= state.maxPerEmailPerDay){
-      logEvent({ type:'rejected', reason:'email_daily_cap', email, emailCount });
-      return { ok:false, reason:'This email has reached daily subscription limit' };
-    }
-    // per-token rate limit (sliding minute)
-    const token = tokenKey();
-    state.attempts[token] = state.attempts[token] || [];
-    // remove older than 2 minutes
-    state.attempts[token] = state.attempts[token].filter(t => t > now()-2*60*1000);
-    if(state.attempts[token].length >= state.maxPerTokenPerMinute){
-      logEvent({ type:'rejected', reason:'token_rate_limit', token, attempts: state.attempts[token].length });
-      return { ok:false, reason:'Too many attempts from your device. Please wait.' };
-    }
-    // allow attempt and record timestamp
-    state.attempts[token].push(now());
-    logEvent({ type:'attempt', email, token });
-    return { ok:true };
+  });
+  loadNotesList();
+  // if no notes, create a starter note
+  if(!state.notes.length){
+    state.notes.push({id:uid('note'), title:'Welcome', body:'# Welcome to OmniKit\\n\\nThis is a starter note. Edit and save.', created:now()});
+    saveState();
   }
-
-  function acceptSubscription({email, channel, display, plan}){
-    const check = canAttempt(email);
-    if(!check.ok) return check;
-    // Accept and store as subscribed (simulate sending verification email)
-    const rec = { id: 'sub_'+Math.random().toString(36).slice(2,9), email, channel, display, plan, ts: now(), verified:false };
-    state.subscriptions.push(rec);
-    logEvent({ type:'accepted', id: rec.id, email, channel });
-    return { ok:true, record: rec };
+  // load last or first note
+  loadNote(state.notes[0].id);
+}
+function renderNotePreview(){
+  const md = el('noteEditor').value;
+  // minimal markdown -> convert headings, bold, italic, links, lists (very small)
+  let html = md
+    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+    .replace(/^- (.*$)/gim, '<li>$1</li>')
+    .replace(/\n/g, '<br>');
+  el('notePreview').innerHTML = html;
+}
+function saveCurrentNote(){
+  const body = el('noteEditor').value || '';
+  // title = first line or "Untitled"
+  const titleLine = (body.split('\\n')[0] || '').replace(/^#\s*/, '').trim();
+  const title = titleLine || 'Note ' + (state.notes.length+1);
+  // check if editing existing note (by id stored in dataset)
+  const editingId = el('noteEditor').dataset.noteId;
+  if(editingId){
+    const n = state.notes.find(x=>x.id===editingId);
+    if(n){ n.body = body; n.title = title; n.modified = now(); }
+  } else {
+    const n = { id: uid('note'), title, body, created: now() };
+    state.notes.unshift(n);
+    el('noteEditor').dataset.noteId = n.id;
   }
+  saveState(); loadNotesList();
+  renderNotePreview();
+  toast('Note saved');
+}
+function loadNotesList(){
+  const wrap = el('notesList'); wrap.innerHTML = '';
+  state.notes.forEach(n => {
+    const d = document.createElement('div');
+    d.className = 'item';
+    d.innerHTML = '<div><strong>' + escapeHtml(n.title) + '</strong><div class="mini muted">' + (new Date(n.created).toLocaleString()) + '</div></div><div><button class="ghost" data-id="'+n.id+'">Open</button></div>';
+    d.querySelector('button').addEventListener('click', ()=> loadNote(n.id));
+    wrap.appendChild(d);
+  });
+}
+function loadNote(id){
+  const n = state.notes.find(x=>x.id===id);
+  if(!n) return;
+  el('noteEditor').value = n.body;
+  el('noteEditor').dataset.noteId = n.id;
+  renderNotePreview();
+}
+function newNote(){
+  el('noteEditor').value = '';
+  delete el('noteEditor').dataset.noteId;
+  renderNotePreview();
+}
+function exportCurrentNote(){
+  const body = el('noteEditor').value || '';
+  const blob = new Blob([body], {type:'text/markdown'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'note.md'; a.click(); URL.revokeObjectURL(a.href);
+}
 
-  function verifySubscription(id){
-    const found = state.subscriptions.find(s => s.id === id);
-    if(!found) return { ok:false, reason:'Not found' };
-    found.verified = true;
-    logEvent({ type:'verified', id, email: found.email });
-    return { ok:true, record: found };
-  }
-
-  function reset(){
-    state.subscriptions = [];
-    state.attempts = {};
-    state.events = [];
-    state.resetAt = Date.now() + 24*3600*1000;
-    logEvent({ type:'reset' });
-  }
-
-  function getState(){ return JSON.parse(JSON.stringify(state)); }
-
-  return { acceptSubscription, verifySubscription, reset, getState };
-})();
-
-/* -------------------------
-   Client UI interactions
--------------------------*/
-const $ = id => document.getElementById(id);
-const subsList = $('subsList');
-const serverState = $('serverState');
-const eventLog = $('eventLog');
-const statusNote = $('statusNote');
-
-function renderLocalSubscriptions(){
-  const list = JSON.parse(localStorage.getItem('demo_subs') || '[]');
-  subsList.innerHTML = '';
-  if(!list.length) {
-    subsList.innerHTML = '<div class="small">No local subscriptions yet. Subscribe above to test the flow.</div>';
-    return;
-  }
-  list.forEach(s => {
-    const el = document.createElement('div');
-    el.className = 'sub-item';
-    el.innerHTML = `
-      <div>
-        <div style="font-weight:700">${escapeHtml(s.channel)} ${s.verified?'<span style="color:#34d399;font-weight:800;font-size:12px;margin-left:8px">verified</span>':''}</div>
-        <div class="small">${escapeHtml(s.email)} ${s.display? '• ' + escapeHtml(s.display):''}</div>
-      </div>
-      <div style="display:flex; gap:8px; align-items:center">
-        <div class="small">${new Date(s.ts).toLocaleString()}</div>
-        <button class="ghost" data-id="${s.id}">Remove</button>
-      </div>
-    `;
-    el.querySelector('button.ghost').addEventListener('click', () => {
-      const arr = JSON.parse(localStorage.getItem('demo_subs') || '[]').filter(x => x.id !== s.id);
-      localStorage.setItem('demo_subs', JSON.stringify(arr));
-      renderLocalSubscriptions(); updateServerView(); appendEventLog({type:'local_removed', id:s.id});
+// -------------------- Tasks / ToDo --------------------
+function initTasks(){
+  el('addTask').addEventListener('click', addTask);
+  loadTasksUI();
+}
+function addTask(){
+  const text = el('taskText').value.trim();
+  if(!text) return toast('Enter a task');
+  const prio = el('taskPrio').value;
+  const due = el('taskDue').value || null;
+  const t = { id: uid('task'), text, prio, due, done:false, created: now() };
+  state.tasks.unshift(t); saveState(); renderTasks();
+  el('taskText').value=''; el('taskDue').value=''; toast('Task added');
+}
+function renderTasks(){
+  const list = el('taskList'); list.innerHTML = '';
+  state.tasks.forEach(t => {
+    const d = document.createElement('div'); d.className = 'item';
+    d.innerHTML = '<div><input type="checkbox" '+(t.done?'checked':'')+' data-id="'+t.id+'"> <strong>' + escapeHtml(t.text) + '</strong><div class="mini muted">' + (t.due?('Due: '+t.due):'') + '</div></div><div><button class="ghost" data-id="'+t.id+'">Delete</button></div>';
+    d.querySelector('input[type="checkbox"]').addEventListener('change', (e)=> {
+      const id = e.target.dataset.id; const it = state.tasks.find(x=>x.id===id); if(it){ it.done = e.target.checked; saveState(); renderTasks(); }
     });
-    subsList.appendChild(el);
+    d.querySelector('button').addEventListener('click', ()=> { state.tasks = state.tasks.filter(x=>x.id!==t.id); saveState(); renderTasks(); });
+    list.appendChild(d);
+  });
+}
+function loadTasksUI(){ renderTasks(); }
+
+// -------------------- File Manager --------------------
+function initFiles(){
+  el('fileInput').addEventListener('change', handleFilesUpload);
+  el('clearFiles').addEventListener('click', ()=> { if(confirm('Clear all uploaded files?')){ state.files=[]; saveState(); renderFiles(); }});
+  el('exportFiles').addEventListener('click', ()=> {
+    const meta = state.files.map(f => ({id:f.id,name:f.name,type:f.type,size:f.size}));
+    const blob = new Blob([JSON.stringify(meta, null, 2)], {type:'application/json'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'files-list.json'; a.click(); URL.revokeObjectURL(a.href);
+  });
+  renderFiles();
+}
+function handleFilesUpload(e){
+  const files = Array.from(e.target.files || []);
+  if(!files.length) return;
+  const promises = files.map(f => {
+    return new Promise((res, rej) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const id = uid('file');
+        state.files.unshift({ id, name: f.name, type: f.type, size: f.size, dataUrl: reader.result });
+        res();
+      };
+      reader.onerror = rej;
+      // limit large files for demo: 20MB
+      if(f.size > 20 * 1024 * 1024){ alert('Skipping large file: '+f.name); return res(); }
+      reader.readAsDataURL(f);
+    });
+  });
+  Promise.all(promises).then(()=>{ saveState(); renderFiles(); toast('Uploaded'); el('fileInput').value=''; });
+}
+function renderFiles(){
+  const wrap = el('filesList'); wrap.innerHTML = '';
+  if(!state.files.length){ wrap.innerHTML = '<div class="mini muted">No files uploaded</div>'; return; }
+  state.files.forEach(f => {
+    const d = document.createElement('div'); d.className = 'item';
+    d.innerHTML = '<div><strong>' + escapeHtml(f.name) + '</strong><div class="mini muted">' + f.type + ' • ' + Math.round(f.size/1024) + 'KB</div></div><div style="display:flex; gap:6px"><button class="ghost" data-id="'+f.id+'" data-action="view">View</button><button class="ghost" data-id="'+f.id+'" data-action="use">Use</button><button class="ghost" data-id="'+f.id+'" data-action="download">Download</button><button class="ghost" data-id="'+f.id+'" data-action="delete">Delete</button></div>';
+    d.querySelector('button[data-action="view"]').addEventListener('click', ()=> previewFile(f.id));
+    d.querySelector('button[data-action="use"]').addEventListener('click', ()=> useFileInTools(f.id));
+    d.querySelector('button[data-action="download"]').addEventListener('click', ()=> downloadFile(f.id));
+    d.querySelector('button[data-action="delete"]').addEventListener('click', ()=> { if(confirm('Delete '+f.name+'?')){ state.files = state.files.filter(x=>x.id!==f.id); saveState(); renderFiles(); }});
+    wrap.appendChild(d);
   });
 }
 
-function appendEventLog(e){
-  // update event display from server as well
-  eventLog.textContent = JSON.stringify(SERVER.getState().events.slice(0,50), null, 2);
-}
-
-function updateServerView(){
-  const st = SERVER.getState();
-  serverState.textContent = JSON.stringify({
-    subscriptions_count: st.subscriptions.length,
-    attempts_keys: Object.keys(st.attempts).length,
-    resetAt: new Date(st.resetAt).toLocaleString()
-  }, null, 2);
-  appendEventLog();
-}
-
-/* form handling */
-$('subscribeBtn').addEventListener('click', async () => {
-  statusNote.textContent = 'Validating...';
-  const channel = $('channel').value;
-  const email = $('email').value.trim().toLowerCase();
-  const display = $('display').value.trim();
-  const plan = $('plan').value;
-  const captchaChecked = $('fakeCaptcha').checked;
-
-  // Client-side validation
-  if(!email || !validateEmail(email)){ alert('Please enter a valid email'); statusNote.textContent='Ready'; return; }
-  if(!captchaChecked){ alert('Please complete the anti-bot check (demo)'); statusNote.textContent='Ready'; return; }
-
-  // Simulated server request with delay
-  statusNote.textContent = 'Contacting server...';
-  await sleep(600 + Math.random()*600);
-  // Ask simulated server to accept (server enforces rate limits)
-  const res = SERVER.acceptSubscription({ email, channel, display, plan });
-  if(!res.ok){
-    alert('Subscription blocked: ' + res.reason);
-    statusNote.textContent = 'Blocked: ' + res.reason;
-    updateServerView();
-    return;
+// preview file (open modal-like)
+function previewFile(id){
+  const f = state.files.find(x=>x.id===id); if(!f) return;
+  if(f.type.startsWith('image/')){
+    // show in canvas
+    loadImageToCanvas(f.dataUrl);
+  } else if(f.type.startsWith('audio/')){
+    el('audioElem').src = f.dataUrl; el('audioElem').style.display='block'; el('videoElem').style.display='none'; el('noMedia').style.display='none';
+  } else if(f.type.startsWith('video/')){
+    el('videoElem').src = f.dataUrl; el('videoElem').style.display='block'; el('audioElem').style.display='none'; el('noMedia').style.display='none';
+  } else {
+    // show text preview if small
+    try{
+      const data = atob(f.dataUrl.split(',')[1]);
+      const text = data.slice(0, 10000); alert('Preview (first chunk):\\n\\n' + text);
+    }catch(e){ alert('Cannot preview this file type in demo'); }
   }
-  // add to local demo storage (unverified)
-  const rec = { id: res.record.id, email: res.record.email, channel: res.record.channel, display: res.record.display, plan: res.record.plan, ts: res.record.ts, verified: false };
-  const arr = JSON.parse(localStorage.getItem('demo_subs') || '[]');
-  arr.unshift(rec);
-  localStorage.setItem('demo_subs', JSON.stringify(arr));
-  renderLocalSubscriptions();
-  statusNote.textContent = 'Subscription created — check email to verify (simulate)';
-  updateServerView();
-});
+}
 
-$('verifyBtn').addEventListener('click', async () => {
-  // In real app, user clicks verification link in email; here we ask to pick one local unverified subscription
-  const arr = JSON.parse(localStorage.getItem('demo_subs') || '[]').filter(x => !x.verified);
-  if(!arr.length){ alert('No unverified local subscriptions to simulate.'); return; }
-  const pick = arr[0];
-  // Simulate clicking verification link
-  await sleep(400);
-  const res = SERVER.verifySubscription(pick.id);
-  if(!res.ok){ alert('Verification failed: ' + res.reason); return; }
-  // update local
-  const local = JSON.parse(localStorage.getItem('demo_subs') || '[]').map(s => s.id === pick.id ? {...s, verified:true} : s);
-  localStorage.setItem('demo_subs', JSON.stringify(local));
-  renderLocalSubscriptions(); updateServerView();
-  statusNote.textContent = 'Email verified (simulated)';
-});
+// Use file in tools: for image -> canvas, for media -> player, for text -> paste to note
+function useFileInTools(id){
+  const f = state.files.find(x=>x.id===id); if(!f) return;
+  if(f.type.startsWith('image/')) loadImageToCanvas(f.dataUrl);
+  else if(f.type.startsWith('audio/') || f.type.startsWith('video/')) {
+    // pretend user clicked Play Selected: set media elements
+    if(f.type.startsWith('audio/')) { el('audioElem').src = f.dataUrl; el('audioElem').style.display='block'; el('videoElem').style.display='none'; el('noMedia').style.display='none'; el('audioElem').play().catch(()=>{}); }
+    else { el('videoElem').src = f.dataUrl; el('videoElem').style.display='block'; el('audioElem').style.display='none'; el('noMedia').style.display='none'; el('videoElem').play().catch(()=>{}); }
+  } else {
+    // Paste small text into note
+    try{
+      const txt = atob(f.dataUrl.split(',')[1]);
+      el('noteEditor').value = txt.slice(0, 12000); renderNotePreview();
+      toast('File content loaded into note editor (first chunk)');
+    }catch(e){ toast('Could not load file into note editor'); }
+  }
+}
+function downloadFile(id){
+  const f = state.files.find(x=>x.id===id); if(!f) return;
+  const a = document.createElement('a'); a.href = f.dataUrl; a.download = f.name; a.click();
+}
 
-$('clearLocal').addEventListener('click', () => {
-  if(!confirm('Clear local demo subscriptions?')) return;
-  localStorage.removeItem('demo_subs');
-  renderLocalSubscriptions(); appendEventLog({type:'cleared_local'});
-});
+// -------------------- Image & Media Tools --------------------
+let originalImageData = null;
+function initMediaAndImages(){
+  el('applyGray').addEventListener('click', applyGray);
+  el('applyInvert').addEventListener('click', applyInvert);
+  el('resetImage').addEventListener('click', resetCanvas);
+  el('downloadImage').addEventListener('click', downloadCanvas);
+  el('playSelected').addEventListener('click', ()=> {
+    if(el('audioElem').src) el('audioElem').play().catch(()=>{});
+    if(el('videoElem').src) el('videoElem').play().catch(()=>{});
+  });
+  el('stopMedia').addEventListener('click', ()=> { el('audioElem').pause(); el('videoElem').pause(); el('audioElem').currentTime=0; el('videoElem').currentTime=0; });
+  // if there is an image file in state.files, load first one
+  const img = state.files.find(f => f.type.startsWith('image/'));
+  if(img) loadImageToCanvas(img.dataUrl);
+}
+function loadImageToCanvas(dataUrl){
+  const canvas = el('imageCanvas'); const ctx = canvas.getContext('2d');
+  const img = new Image();
+  img.onload = () => {
+    // set canvas pixel size proportionally (limit size)
+    const maxW = 900, maxH = 600;
+    let w = img.width, h = img.height;
+    const ratio = Math.min(maxW / w, maxH / h, 1);
+    canvas.width = Math.round(w * ratio); canvas.height = Math.round(h * ratio);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    originalImageData = ctx.getImageData(0,0,canvas.width, canvas.height);
+    el('imageCanvas').style.height = (canvas.height * (el('imageCanvas').clientWidth/canvas.width)) + 'px';
+  };
+  img.src = dataUrl;
+}
+function applyGray(){ applyFilter(pixel => { const avg = (pixel.r + pixel.g + pixel.b)/3; pixel.r = pixel.g = pixel.b = avg; }); }
+function applyInvert(){ applyFilter(pixel => { pixel.r = 255 - pixel.r; pixel.g = 255 - pixel.g; pixel.b = 255 - pixel.b; }); }
+function applyFilter(fn){
+  const canvas = el('imageCanvas'); if(!canvas.width) return toast('No image loaded');
+  const ctx = canvas.getContext('2d'); const img = ctx.getImageData(0,0,canvas.width,canvas.height);
+  for(let i=0;i<img.data.length;i+=4){
+    let pixel = { r: img.data[i], g: img.data[i+1], b: img.data[i+2], a: img.data[i+3] };
+    fn(pixel);
+    img.data[i] = pixel.r; img.data[i+1] = pixel.g; img.data[i+2] = pixel.b; img.data[i+3] = pixel.a;
+  }
+  ctx.putImageData(img, 0, 0);
+}
+function resetCanvas(){
+  const canvas = el('imageCanvas'); if(!originalImageData) return toast('No original image saved');
+  const ctx = canvas.getContext('2d'); ctx.putImageData(originalImageData, 0, 0);
+}
+function downloadCanvas(){
+  const canvas = el('imageCanvas'); if(!canvas.width) return toast('No image to download');
+  const url = canvas.toDataURL('image/png');
+  const a = document.createElement('a'); a.href = url; a.download = 'image.png'; a.click();
+}
 
-$('resetServer').addEventListener('click', () => {
-  if(!confirm('Reset simulated server state?')) return;
-  SERVER.reset();
-  updateServerView();
-  statusNote.textContent = 'Simulated server reset';
-});
+// -------------------- Command Palette --------------------
+function initPalette(){
+  const palette = el('palette'), input = el('paletteInput'), results = el('paletteResults');
+  el('openPalette').addEventListener('click', ()=> togglePalette(true));
+  // keyboard
+  window.addEventListener('keydown', e => {
+    if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k'){ e.preventDefault(); togglePalette(true); }
+    if(e.key === 'Escape'){ togglePalette(false); }
+  });
+  input.addEventListener('input', () => updatePaletteResults(input.value));
+  function togglePalette(show){
+    palette.style.display = show ? 'block' : 'none';
+    if(show){ input.value=''; updatePaletteResults(''); input.focus(); }
+  }
+  function updatePaletteResults(q){
+    const cmds = [
+      { id:'search', label:'Search web: <query>', action: ()=> { const v = prompt('Search query'); if(v) { el('searchQuery').value=v; doSearch(); togglePalette(false); } } },
+      { id:'newnote', label:'New note', action: ()=> { newNote(); togglePalette(false); } },
+      { id:'savenote', label:'Save note', action: ()=> { saveCurrentNote(); togglePalette(false); } },
+      { id:'addtask', label:'Add task', action: ()=> { const t = prompt('Task text'); if(t) { el('taskText').value=t; addTask(); } togglePalette(false); } },
+      { id:'openfiles', label:'Open files panel', action: ()=> { window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'}); togglePalette(false);} },
+      { id:'export', label:'Export app state', action: ()=> { exportState(); togglePalette(false); } }
+    ];
+    const ql = q.trim().toLowerCase();
+    const filtered = cmds.filter(c => c.label.toLowerCase().includes(ql) || !ql).slice(0,8);
+    results.innerHTML = '';
+    filtered.forEach(c => {
+      const r = document.createElement('div'); r.className='result'; r.innerHTML = c.label;
+      r.addEventListener('click', ()=> c.action());
+      results.appendChild(r);
+    });
+  }
+}
 
-function sleep(ms){ return new Promise(res => setTimeout(res, ms)); }
-function validateEmail(e){ return /\S+@\S+\.\S+/.test(e); }
-function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+// -------------------- Quick clips & actions --------------------
+function initQuickClips(){
+  el('clip1').addEventListener('click', ()=> copyToClipboard('Hello'));
+  el('clip2').addEventListener('click', ()=> copyToClipboard('Todo: Read docs'));
+  el('clip3').addEventListener('click', ()=> copyToClipboard('name@example.com'));
+}
+function copyToClipboard(text){
+  navigator.clipboard?.writeText(text).then(()=> toast('Copied to clipboard')).catch(()=> alert('Copy failed'));
+}
 
-// initial render
-renderLocalSubscriptions();
-updateServerView();
+// -------------------- Shortcuts and misc --------------------
+function initShortcuts(){
+  el('runCode').addEventListener('click', runCodeInSandbox);
+  el('clearConsole').addEventListener('click', ()=> el('consoleOut').textContent='');
+  el('exportStateBtn').addEventListener('click', exportState);
+  el('importStateBtn').addEventListener('click', importState);
+  el('themeBtn').addEventListener('click', toggleTheme);
+  el('applyGradient').addEventListener('click', applyGradientBG);
+  el('clearBg').addEventListener('click', ()=> document.body.style.background = '');
+  // Ctrl/Cmd+Enter run code
+  window.addEventListener('keydown', e => {
+    if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){ if(document.activeElement === el('codeArea')) runCodeInSandbox(); }
+  });
+  // load theme
+  if(state.settings && state.settings.theme === 'light') setLightTheme();
+}
+function toggleTheme(){ if(state.settings.theme === 'dark') setLightTheme(); else setDarkTheme(); saveState(); }
+function setLightTheme(){ state.settings.theme = 'light'; document.documentElement.style.colorScheme='light'; document.body.style.background='linear-gradient(180deg,#ffffff,#f5f7fb)'; saveState(); toast('Light theme'); }
+function setDarkTheme(){ state.settings.theme = 'dark'; document.documentElement.style.colorScheme='dark'; document.body.style.background='linear-gradient(180deg,#031025 0%, #071227 60%)'; saveState(); toast('Dark theme'); }
 
-/* show server state periodically for demo */
-setInterval(()=> { updateServerView(); }, 2000);
+// apply gradient background from color pickers
+function applyGradientBG(){
+  const c1 = el('c1').value, c2 = el('c2').value;
+  document.body.style.background = `linear-gradient(90deg, ${c1}, ${c2})`;
+  state.settings.gradient = { c1, c2 }; saveState(); toast('Gradient applied');
+}
 
-/* End of demo script */
+// -------------------- Safe JS sandbox runner --------------------
+function runCodeInSandbox(){
+  const code = el('codeArea').value || '';
+  if(!code.trim()) return toast('Type some code to run');
+  // create iframe sandboxed so code cannot access parent (sandbox attribute)
+  const iframe = document.createElement('iframe');
+  iframe.sandbox = 'allow-scripts';
+  iframe.style.display = 'none';
+  document.body.appendChild(iframe);
+  const wrapped = `
+    // capture console
+    (function(){
+      const out = [];
+      const console = { log: (...a)=> out.push({type:'log', msg:a}), error: (...a)=> out.push({type:'err', msg:a}) };
+      try{
+        (function(console){ ${code} })(console);
+        parent.postMessage({type:'sandbox-result', ok:true, out}, '*');
+      }catch(e){
+        parent.postMessage({type:'sandbox-result', ok:false, err: e && e.toString ? e.toString() : String(e), out}, '*');
+      }
+    })();`;
+  iframe.contentWindow.document.open();
+  iframe.contentWindow.document.write(`<script>${wrapped}<\/script>`);
+  iframe.contentWindow.document.close();
+  // handle result
+  function onMessage(ev){
+    if(ev.data && ev.data.type === 'sandbox-result'){
+      window.removeEventListener('message', onMessage);
+      document.body.removeChild(iframe);
+      const o = ev.data;
+      if(o.ok){ el('consoleOut').textContent += '\\n' + JSON.stringify(o.out, null, 2); toast('Code executed'); }
+      else { el('consoleOut').textContent += '\\nError: ' + o.err; alert('Error in sandboxed code: ' + o.err); }
+    }
+  }
+  window.addEventListener('message', onMessage);
+}
+
+// -------------------- Export / Import App State --------------------
+function exportState(){
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'omnikit-state.json'; a.click(); URL.revokeObjectURL(a.href);
+}
+function importState(){
+  const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'application/json';
+  inp.addEventListener('change', ()=> {
+    const f = inp.files[0]; if(!f) return;
+    const r = new FileReader(); r.onload = ()=> {
+      try{
+        const obj = JSON.parse(r.result);
+        if(confirm('Replace local state with imported data? This will overwrite current data.')) {
+          state = obj; saveState(); renderAll(); toast('Imported state');
+        }
+      }catch(e){ alert('Invalid JSON'); }
+    }; r.readAsText(f);
+  }); inp.click();
+}
+
+// -------------------- Render helpers --------------------
+function renderAll(){ renderFiles(); loadNotesList(); renderNotePreview(); renderTasks(); }
+function renderFiles(){ renderFiles(); } // alias set earlier
+
+// -------------------- Small utilities --------------------
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function toast(msg){ console.log('Toast:', msg); /* minimal: show browser notification? */ }
+
+// -------------------- Debug / dev helpers --------------------
+window._omnikit_state = () => state;
+
 </script>
 </body>
 </html>
