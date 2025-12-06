@@ -4,446 +4,356 @@ index.html
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Search & Powers — Your mini web app</title>
+<title>Safe Subscription Demo — Prototype</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <style>
+  /* Modern compact UI styles */
   :root{
-    --bg:#0f1724; --card:#0b1220; --accent:#7c3aed; --muted:#9aa4b2;
+    --bg:#0f1724; --card:#071024; --accent:#7c3aed; --muted:#9aa4b2;
     --glass: rgba(255,255,255,0.03);
-    --radius:14px;
-    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    --radius:12px; --maxw:980px; font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;
   }
   *{box-sizing:border-box}
-  body{
-    margin:0; min-height:100vh; background:
-    radial-gradient(1000px 400px at 10% 10%, rgba(124,58,237,0.12), transparent 6%),
-    linear-gradient(180deg, #071022 0%, #061420 50%),
-    var(--bg);
-    color:#e6eef6;
-    padding:28px;
-    -webkit-font-smoothing:antialiased;
-    -moz-osx-font-smoothing:grayscale;
-  }
-  .wrap{max-width:980px; margin:0 auto; display:grid; gap:20px;
-    grid-template-columns: 1fr 420px;
-  }
-  header{grid-column:1/-1; display:flex; align-items:center; gap:16px}
-  h1{margin:0; font-size:20px; letter-spacing:0.4px}
+  body{margin:0; min-height:100vh; background:
+    linear-gradient(180deg,#041025 0%, #071427 40%), var(--bg); color:#e6eef6; padding:28px;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:var(--maxw); margin:0 auto; display:grid; gap:18px; grid-template-columns: 1fr 380px;}
+  header{display:flex; gap:12px; align-items:center}
+  h1{margin:0; font-size:20px}
   .subtitle{color:var(--muted); font-size:13px}
-  .card{
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border:1px solid rgba(255,255,255,0.04);
-    padding:16px; border-radius:var(--radius); box-shadow: 0 6px 30px rgba(2,6,23,0.6);
-  }
-
-  /* Search area */
-  .search-area{display:flex; gap:12px; align-items:center}
-  .search-box{flex:1; display:flex; gap:8px}
-  input[type="search"]{
-    flex:1; padding:12px 14px; border-radius:10px; border:none; outline:none;
-    background:var(--glass); color:inherit; font-size:14px;
-  }
-  select{padding:10px 12px; border-radius:10px; border:none; background:var(--glass); color:inherit}
-  .btn{
-    background:linear-gradient(90deg,var(--accent), #5b21b6); border:none; color:white;
-    padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:600;
-    box-shadow: 0 6px 18px rgba(92,33,182,0.18);
-  }
-
-  /* Powers column */
-  .powers-col{display:flex; flex-direction:column; gap:12px;}
-  .power-list{display:flex; flex-direction:column; gap:8px; margin-top:6px;}
-  .power-item{
-    display:flex; justify-content:space-between; gap:8px; align-items:center;
-    padding:10px; border-radius:10px; background:linear-gradient(180deg, rgba(255,255,255,0.015), transparent);
-    border:1px solid rgba(255,255,255,0.02);
-  }
-  .power-name{font-weight:700}
-  .small{font-size:12px; color:var(--muted)}
-
-  form.create-power{display:grid; gap:8px; grid-template-columns:1fr;}
-  input[type="text"], textarea, input[type="range"]{
-    width:100%; padding:8px 10px; border-radius:8px; border:none; background:var(--glass); color:inherit;
-  }
-  textarea{min-height:64px; resize:vertical}
-
-  .actions{display:flex; gap:8px}
+  .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); padding:16px; border-radius:var(--radius); border:1px solid rgba(255,255,255,0.04)}
+  form{display:flex; flex-direction:column; gap:10px}
+  label{font-size:13px; color:var(--muted)}
+  input[type="email"], input[type="text"], select{padding:10px; border-radius:8px; border:none; background:var(--glass); color:inherit; font-size:14px}
+  .row{display:flex; gap:8px}
+  .btn{background:linear-gradient(90deg,var(--accent), #5b21b6); padding:10px 14px; border-radius:10px; border:none; color:white; cursor:pointer; font-weight:700}
   .ghost{background:transparent; border:1px solid rgba(255,255,255,0.06); padding:8px 10px; border-radius:8px; color:var(--muted); cursor:pointer}
-
-  /* granted badge */
-  .badge{
-    display:inline-flex; gap:8px; align-items:center; padding:8px 12px; border-radius:999px;
-    background: linear-gradient(90deg, rgba(124,58,237,0.12), rgba(59,130,246,0.06));
-    color:#eaf2ff; font-weight:700; font-size:13px;
-  }
-
-  /* Confetti / animation overlay */
-  .overlay{
-    position:fixed; inset:0; pointer-events:none; display:flex; align-items:center; justify-content:center;
-  }
-  .modal{
-    position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); z-index:50;
-    background:#071127; padding:18px; border-radius:14px; border:1px solid rgba(255,255,255,0.04);
-    box-shadow: 0 20px 60px rgba(2,6,23,0.8);
-  }
-
-  footer{grid-column:1/-1; color:var(--muted); font-size:13px; text-align:center; margin-top:6px;}
-
-  /* responsive */
-  @media (max-width:920px){
-    .wrap{grid-template-columns:1fr; padding-bottom:80px}
-    .powers-col{order:2}
-    header{flex-direction:column; align-items:flex-start}
-  }
-
-  /* simple visual for power strength */
-  .strength{
-    height:8px; width:120px; background:rgba(255,255,255,0.04); border-radius:8px; overflow:hidden;
-  }
-  .strength > i{display:block; height:100%; background:linear-gradient(90deg,#34d399,#60a5fa); width:30%}
-  /* small helper */
   .note{color:var(--muted); font-size:13px}
+  .small{font-size:13px; color:var(--muted)}
+  .list{display:flex; flex-direction:column; gap:8px; margin-top:8px}
+  .sub-item{display:flex; justify-content:space-between; gap:8px; align-items:center; padding:10px; border-radius:10px; background:rgba(255,255,255,0.01); border:1px solid rgba(255,255,255,0.02)}
+  .analytics{display:flex; flex-direction:column; gap:8px}
+  pre {background:rgba(255,255,255,0.02); padding:10px; border-radius:8px; overflow:auto; color:var(--muted)}
+  footer{grid-column:1/-1; color:var(--muted); text-align:center; font-size:13px; margin-top:6px}
+  @media (max-width:900px){ .wrap{grid-template-columns:1fr} }
 </style>
 </head>
 <body>
   <div class="wrap">
     <header>
       <div>
-        <h1>Search & Powers</h1>
-        <div class="subtitle">Search the web + create and "possess" fictional powers (saved locally)</div>
+        <h1>Subscription UX — Safe Demo</h1>
+        <div class="subtitle">Prototype UI with simulated server-side protections (for demo only)</div>
       </div>
-      <div style="margin-left:auto; display:flex; gap:10px; align-items:center">
-        <div class="badge" id="current-power-badge" title="Your currently granted power (if any)">
-          No power granted
-        </div>
-      </div>
+      <div style="margin-left:auto" class="small">Demo mode — not connected to external services</div>
     </header>
 
-    <!-- LEFT: Search + generator -->
-    <section class="card">
-      <h2 style="margin:0 0 10px 0">Search the web</h2>
-      <div class="search-area">
-        <div class="search-box" style="flex:1">
-          <input id="q" type="search" placeholder="Search the web — type and press Search" autocomplete="off" />
-          <select id="engine" title="Choose search engine">
-            <option value="https://www.google.com/search?q=">Google</option>
-            <option value="https://www.bing.com/search?q=">Bing</option>
-            <option value="https://duckduckgo.com/?q=" selected>DuckDuckGo</option>
-            <option value="https://www.startpage.com/sp/search?q=">Startpage</option>
-          </select>
+    <!-- Main content -->
+    <main class="card">
+      <h2 style="margin-top:0">Subscribe to a Channel</h2>
+      <form id="subForm" autocomplete="off" novalidate>
+        <label for="channel">Choose channel</label>
+        <select id="channel" required>
+          <option value="dev-tutorials">Dev Tutorials</option>
+          <option value="music-beats">Music Beats</option>
+          <option value="gaming-insights">Gaming Insights</option>
+          <option value="daily-vlogs">Daily Vlogs</option>
+          <option value="ai-lab">AI Lab</option>
+        </select>
+
+        <label for="email">Your email (verification required)</label>
+        <input id="email" type="email" placeholder="you@example.com" required>
+
+        <div class="row">
+          <div style="flex:1">
+            <label for="display">Display name (optional)</label>
+            <input id="display" type="text" placeholder="Your public name (optional)">
+          </div>
+          <div style="width:160px">
+            <label class="small">Subscription type</label>
+            <select id="plan">
+              <option value="free">Free</option>
+              <option value="premium">Premium</option>
+            </select>
+          </div>
         </div>
-        <button class="btn" id="searchBtn">Search</button>
-      </div>
-      <div style="margin-top:12px" class="note">Tip: press Enter to search. Results open in a new tab. This page doesn't index the web itself.</div>
 
-      <hr style="margin:16px 0; border:none; height:1px; background:rgba(255,255,255,0.02)">
-
-      <h3 style="margin:0 0 10px 0">Quick tools</h3>
-      <div style="display:flex; gap:8px; flex-wrap:wrap">
-        <button class="ghost" id="searchImages">Search images</button>
-        <button class="ghost" id="searchNews">Search news</button>
-        <button class="ghost" id="searchSite">Search this site (example)</button>
-      </div>
-
-      <hr style="margin:16px 0; border:none; height:1px; background:rgba(255,255,255,0.02)">
-
-      <h3 style="margin:0 0 10px 0">Random power generator</h3>
-      <div style="display:flex; gap:8px; align-items:center">
-        <button class="btn" id="genPower">Generate random power</button>
-        <div class="note" id="randomPowerPreview" style="margin-left:auto">No power yet</div>
-      </div>
-      <div style="margin-top:10px; color:var(--muted); font-size:13px">
-        Generated powers are fictional and for fun.
-      </div>
-    </section>
-
-    <!-- RIGHT: Powers management -->
-    <aside class="card powers-col">
-      <div>
-        <h2 style="margin:0 0 8px 0">Powers — create & possess</h2>
-        <div class="small">Design custom powers, save them, and "grant" yourself a power.</div>
-      </div>
-
-      <form id="createPower" class="create-power" onsubmit="return false">
-        <input id="pname" type="text" placeholder="Power name (e.g. Telekinesis)" required />
-        <textarea id="pdesc" placeholder="Short description / effect (e.g. Move objects with your mind)"></textarea>
-        <label class="small">Strength: <span id="strengthVal">50</span></label>
-        <input id="pstr" type="range" min="1" max="100" value="50" />
-        <div class="actions">
-          <button id="savePower" class="btn">Save Power</button>
-          <button id="grantRandom" class="ghost">Grant a Random Power</button>
+        <!-- CAPTCHA placeholder: in production integrate real CAPTCHA (reCAPTCHA / hCaptcha) -->
+        <div>
+          <label class="small">Anti-bot check</label>
+          <div id="captchaBox" style="padding:10px; border-radius:8px; background:var(--glass); display:flex; align-items:center; gap:8px">
+            <input type="checkbox" id="fakeCaptcha"> <label for="fakeCaptcha" class="small">I'm not a bot (demo checkbox — replace with real CAPTCHA)</label>
+          </div>
         </div>
+
+        <div style="display:flex; gap:8px; align-items:center; margin-top:6px">
+          <button id="subscribeBtn" class="btn" type="button">Subscribe</button>
+          <button id="verifyBtn" class="ghost" type="button">Simulate verify email</button>
+          <div class="note" id="statusNote" style="margin-left:auto">Ready</div>
+        </div>
+        <div class="note">This demo **simulates** server-side rate limiting and email verification.</div>
       </form>
 
-      <div style="margin-top:6px">
-        <h4 style="margin:0 0 8px 0">Saved powers</h4>
-        <div id="powers" class="power-list">
-          <!-- power items go here -->
-        </div>
-      </div>
+      <hr style="margin:12px 0; border:none; height:1px; background:rgba(255,255,255,0.03)">
 
-      <div style="margin-top:8px; display:flex; gap:8px; justify-content:space-between; align-items:center">
-        <div class="small">Your powers are saved in this browser only.</div>
+      <h3 style="margin:0">Your local subscriptions (demo)</h3>
+      <div id="subsList" class="list">
+        <!-- items injected here -->
+      </div>
+    </main>
+
+    <!-- Sidebar: analytics & controls -->
+    <aside class="card">
+      <h3 style="margin-top:0">Demo Controls & Analytics</h3>
+      <div class="analytics">
+        <div class="small">Note: real systems must treat high-frequency subscription attempts as abuse.</div>
         <div style="display:flex; gap:8px">
-          <button class="ghost" id="exportJSON">Export JSON</button>
-          <button class="ghost" id="clearAll">Clear All</button>
+          <button id="clearLocal" class="ghost">Clear local demo subscriptions</button>
+          <button id="resetServer" class="ghost">Reset simulated server</button>
+        </div>
+        <div style="margin-top:8px">
+          <label class="small">Simulated server state</label>
+          <pre id="serverState" style="height:120px">loading...</pre>
+        </div>
+        <div style="margin-top:8px">
+          <label class="small">Event log (recent)</label>
+          <pre id="eventLog" style="height:160px">[]</pre>
         </div>
       </div>
     </aside>
 
     <footer>
-      Made for you — save this file and open it locally. No account required. Have fun and stay fictional!
+      Demo for prototyping. For real apps: implement server-side verification, limits, and anti-abuse measures.
     </footer>
   </div>
 
-  <!-- Modal placeholder -->
-  <div id="modalRoot"></div>
-  <div id="confettiRoot" class="overlay" aria-hidden="true"></div>
-
 <script>
 /*
-  Search & Powers app
-  Save as index.html and open.
-  - Search: builds a query URL for the chosen engine and opens a new tab.
-  - Powers: create, list, grant, save to localStorage.
+  SAFE DEMO:
+  - This is purely client-side simulation.
+  - Do NOT use this to attempt automated creation of real accounts/subscriptions.
+  - Production MUST implement server-side email verification, rate-limits, CAPTCHAs, and logging.
 */
 
-const $ = id => document.getElementById(id);
+/* -------------------------
+   Simulated server (client-side) — for demo only
+   - Keeps a record of subscription attempts keyed by IP-like token
+   - Enforces per-email / per-token cooldowns and global daily cap
+   - Records events for analytics
+   In production, these must be implemented server-side and cannot be trusted on the client.
+-------------------------*/
+const SERVER = (() => {
+  const state = {
+    subscriptions: [],         // accepted subscriptions (email + channel + timestamp)
+    attempts: {},              // attempts per token: { token: [timestamps] }
+    events: [],                // event log
+    maxPerTokenPerMinute: 5,   // demo limits
+    maxPerEmailPerDay: 3,      // demo: email can only subscribe N times/day
+    globalDailyCap: 1000,      // demo global cap
+    resetAt: Date.now() + 24*3600*1000
+  };
 
-// --- SEARCH HANDLERS ---
-const qInput = $('q'), engineSel = $('engine'), searchBtn = $('searchBtn');
-
-function searchQuery(options = {}) {
-  const q = (options.q ?? qInput.value ?? '').trim();
-  if (!q) {
-    alert('Type something to search.');
-    return;
+  function now(){ return Date.now(); }
+  function tokenKey() {
+    // in demo we use a persistent token per browser (like a device id)
+    let t = localStorage.getItem('demo_device_token');
+    if(!t){ t = 'tok_' + Math.random().toString(36).slice(2,10); localStorage.setItem('demo_device_token', t); }
+    return t;
   }
-  const engineBase = engineSel.value;
-  // support image/news shortcuts
-  const mode = options.mode || '';
-  let url = engineBase + encodeURIComponent(q);
-  if (mode === 'images') {
-    // common image parameter for engines (best-effort)
-    if (engineBase.includes('duckduckgo')) url = 'https://duckduckgo.com/?q=' + encodeURIComponent(q) + '&iax=images&ia=images';
-    if (engineBase.includes('google')) url = 'https://www.google.com/search?tbm=isch&q=' + encodeURIComponent(q);
-    if (engineBase.includes('bing')) url = 'https://www.bing.com/images/search?q=' + encodeURIComponent(q);
-  } else if (mode === 'news') {
-    if (engineBase.includes('google')) url = 'https://www.google.com/search?tbm=nws&q=' + encodeURIComponent(q);
-    else if (engineBase.includes('bing')) url = 'https://www.bing.com/news/search?q=' + encodeURIComponent(q);
-    else url = engineBase + encodeURIComponent(q) + '&t=news';
-  } else if (mode === 'site') {
-    // example: search this site (this file). Using site:example for Google-friendly result.
-    const site = location.hostname || 'example.com';
-    url = engineBase + encodeURIComponent(\`site:\${site} \${q}\`);
+
+  function logEvent(e){
+    state.events.unshift({ ts: now(), ...e });
+    // limit to last 200 events
+    if(state.events.length>200) state.events.length = 200;
   }
-  window.open(url, '_blank');
-}
-searchBtn.addEventListener('click', () => searchQuery());
-qInput.addEventListener('keydown', e => { if (e.key === 'Enter') searchQuery(); });
 
-$('searchImages').addEventListener('click', () => searchQuery({mode:'images'}));
-$('searchNews').addEventListener('click', () => searchQuery({mode:'news'}));
-$('searchSite').addEventListener('click', () => {
-  const q = prompt('Search this site for (example):', qInput.value || '');
-  if (q !== null) {
-    qInput.value = q;
-    searchQuery({mode:'site'});
+  function canAttempt(email){
+    // check global cap
+    if(state.subscriptions.length >= state.globalDailyCap){
+      logEvent({ type:'rejected', reason:'global_cap', email });
+      return { ok:false, reason:'Global daily cap reached' };
+    }
+    // check email daily
+    const dayAgo = now() - 24*3600*1000;
+    const emailCount = state.subscriptions.filter(s => s.email === email && s.ts > dayAgo).length;
+    if(emailCount >= state.maxPerEmailPerDay){
+      logEvent({ type:'rejected', reason:'email_daily_cap', email, emailCount });
+      return { ok:false, reason:'This email has reached daily subscription limit' };
+    }
+    // per-token rate limit (sliding minute)
+    const token = tokenKey();
+    state.attempts[token] = state.attempts[token] || [];
+    // remove older than 2 minutes
+    state.attempts[token] = state.attempts[token].filter(t => t > now()-2*60*1000);
+    if(state.attempts[token].length >= state.maxPerTokenPerMinute){
+      logEvent({ type:'rejected', reason:'token_rate_limit', token, attempts: state.attempts[token].length });
+      return { ok:false, reason:'Too many attempts from your device. Please wait.' };
+    }
+    // allow attempt and record timestamp
+    state.attempts[token].push(now());
+    logEvent({ type:'attempt', email, token });
+    return { ok:true };
   }
-});
 
-// --- POWERS STORAGE & UI ---
-const STORAGE_KEY = 'my_powers_v1';
-let powers = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-
-function savePowers(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(powers));
-}
-
-function renderPowers(){
-  const container = $('powers');
-  container.innerHTML = '';
-  if (!powers.length){
-    container.innerHTML = '<div class="small">No saved powers yet — create one or generate a random power.</div>';
-    return;
+  function acceptSubscription({email, channel, display, plan}){
+    const check = canAttempt(email);
+    if(!check.ok) return check;
+    // Accept and store as subscribed (simulate sending verification email)
+    const rec = { id: 'sub_'+Math.random().toString(36).slice(2,9), email, channel, display, plan, ts: now(), verified:false };
+    state.subscriptions.push(rec);
+    logEvent({ type:'accepted', id: rec.id, email, channel });
+    return { ok:true, record: rec };
   }
-  powers.forEach((p, idx) => {
-    const el = document.createElement('div');
-    el.className = 'power-item';
-    el.innerHTML = \`
-      <div>
-        <div class="power-name">\${escapeHtml(p.name)}</div>
-        <div class="small">\${escapeHtml(p.desc || '')}</div>
-      </div>
-      <div style="display:flex; gap:8px; align-items:center">
-        <div class="small" title="Strength">
-          <div class="strength" style="width:100px"><i style="width:\${Math.max(6,p.strength)}%"></i></div>
-        </div>
-        <button class="ghost" data-idx="\${idx}" onclick="grantPower(\${idx})">Grant</button>
-        <button class="ghost" data-idx="\${idx}" onclick="deletePower(\${idx})">Delete</button>
-      </div>
-    \`;
-    container.appendChild(el);
-  });
-}
 
-// utility: escape for safety
-function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
-// Save from form
-$('pstr').addEventListener('input', e => $('strengthVal').textContent = e.target.value);
-$('savePower').addEventListener('click', () => {
-  const name = $('pname').value.trim();
-  const desc = $('pdesc').value.trim();
-  const strength = parseInt($('pstr').value || 50, 10);
-  if (!name) { alert('Give the power a name.'); return; }
-  const p = { id: Date.now(), name, desc, strength };
-  powers.unshift(p);
-  savePowers();
-  renderPowers();
-  $('pname').value=''; $('pdesc').value=''; $('pstr').value=50; $('strengthVal').textContent='50';
-});
-
-// delete
-function deletePower(i){
-  if (!confirm('Delete this saved power?')) return;
-  powers.splice(i,1);
-  savePowers(); renderPowers();
-}
-
-// clear all
-$('clearAll').addEventListener('click', () => {
-  if (!confirm('Clear all saved powers? This cannot be undone.')) return;
-  powers = []; savePowers(); renderPowers();
-});
-
-// export
-$('exportJSON').addEventListener('click', () => {
-  const blob = new Blob([JSON.stringify(powers, null, 2)], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = 'powers.json'; a.click();
-  URL.revokeObjectURL(url);
-});
-
-// generate random power
-const prefixes = ['Trans','Electro','Chrono','Aero','Pyro','Aqua','Shadow','Light','Geo','Psy'];
-const nouns = ['kinesis','shift','blast','cloak','field','sense','link','echo','wing','morph'];
-const effects = [
-  'Move objects with your mind.',
-  'Slow down or speed up time nearby.',
-  'Breathe underwater and control currents.',
-  'Create a temporary protective shield.',
-  'Teleport short distances.',
-  'Phase through thin walls for a moment.',
-  'Read surface thoughts for a few seconds.',
-  'Summon a small familiar for aid.',
-  'Turn invisible while still audible.',
-  'Project calming or chaotic emotions.'
-];
-function randomFrom(a){ return a[Math.floor(Math.random()*a.length)]; }
-const randomPowerPreview = $('randomPowerPreview');
-$('genPower').addEventListener('click', () => {
-  const name = randomFrom(prefixes) + randomFrom(nouns);
-  const desc = randomFrom(effects);
-  const strength = Math.floor(30 + Math.random()*70);
-  randomPowerPreview.textContent = \`\${name} — \${desc} (strength \${strength})\`;
-  // quick option: add to saved list
-  if (confirm('Save this random power to your list?')) {
-    powers.unshift({id:Date.now(), name, desc, strength});
-    savePowers(); renderPowers();
+  function verifySubscription(id){
+    const found = state.subscriptions.find(s => s.id === id);
+    if(!found) return { ok:false, reason:'Not found' };
+    found.verified = true;
+    logEvent({ type:'verified', id, email: found.email });
+    return { ok:true, record: found };
   }
-});
 
-// grant a random saved power
-$('grantRandom').addEventListener('click', () => {
-  if (!powers.length){
-    alert('No saved powers to grant — generate or save one first.');
-    return;
+  function reset(){
+    state.subscriptions = [];
+    state.attempts = {};
+    state.events = [];
+    state.resetAt = Date.now() + 24*3600*1000;
+    logEvent({ type:'reset' });
   }
-  const p = powers[Math.floor(Math.random()*powers.length)];
-  grantPowerByObj(p);
-});
 
-// grant handler accessible from inline onclick
-window.grantPower = function(i){
-  const p = powers[i];
-  if (!p) return;
-  grantPowerByObj(p);
-};
+  function getState(){ return JSON.parse(JSON.stringify(state)); }
 
-function grantPowerByObj(p){
-  // visual modal + confetti
-  showModal(\`You are granted: <strong>\${escapeHtml(p.name)}</strong>\`, \`\${escapeHtml(p.desc || '')}<br><br><em>Strength: \${p.strength}</em>\`);
-  // store current in localStorage separately
-  localStorage.setItem('current_power', JSON.stringify(p));
-  updateBadge();
-}
-
-// update badge with current power
-function updateBadge(){
-  const badge = $('current-power-badge');
-  const cur = JSON.parse(localStorage.getItem('current_power') || 'null');
-  if (cur) badge.textContent = cur.name;
-  else badge.textContent = 'No power granted';
-}
-
-// delete-power function (must be global for onclick to see it)
-window.deletePower = deletePower;
-
-// modal & confetti simple implementation
-function showModal(titleHtml, bodyHtml){
-  const root = $('modalRoot');
-  root.innerHTML = '';
-  const modal = document.createElement('div');
-  modal.className = 'modal';
-  modal.innerHTML = \`<div style="font-weight:800; margin-bottom:8px; font-size:16px">\${titleHtml}</div><div style="color:var(--muted); margin-bottom:12px">\${bodyHtml}</div><div style="display:flex; gap:8px; justify-content:flex-end"><button id="closeModal" class="btn">Nice!</button></div>\`;
-  root.appendChild(modal);
-  // confetti
-  launchConfetti();
-  document.getElementById('closeModal').focus();
-  document.getElementById('closeModal').addEventListener('click', () => {
-    root.innerHTML = '';
-  });
-}
-
-// tiny confetti: spawn emojis that float
-function launchConfetti(){
-  const layer = $('confettiRoot');
-  if(!layer) return;
-  layer.innerHTML = '';
-  layer.style.pointerEvents = 'none';
-  for(let i=0;i<18;i++){
-    const e = document.createElement('div');
-    e.textContent = ['✨','⚡','🌟','🔮','🔥','🌀'][Math.floor(Math.random()*6)];
-    Object.assign(e.style, {
-      position:'absolute', left: (20+Math.random()*60)+'%',
-      top: (40+Math.random()*10)+'%',
-      fontSize: (12+Math.random()*28)+'px',
-      opacity:1,
-      transform: 'translateY(0) rotate('+ (Math.random()*360) +'deg)',
-      transition: 'transform 1200ms cubic-bezier(.2,.8,.2,1), opacity 1200ms ease-out'
-    });
-    layer.appendChild(e);
-    // animate
-    requestAnimationFrame(()=> {
-      const dx = (Math.random()*180-90);
-      const dy = - (120 + Math.random()*260);
-      e.style.transform = \`translate(\${dx}px,\${dy}px) rotate(\${Math.random()*720}deg) scale(1.02)\`;
-      e.style.opacity = 0;
-    });
-  }
-  // clear later
-  setTimeout(()=> layer.innerHTML = '', 1500);
-}
-
-// load initial
-renderPowers();
-updateBadge();
-
-// restore user-pasted JSON (optional)
-(function tryLoadIfHashJson(){
-  // if user drops JSON into location.hash like #load={"name":"X"} it's disabled for safety
+  return { acceptSubscription, verifySubscription, reset, getState };
 })();
 
+/* -------------------------
+   Client UI interactions
+-------------------------*/
+const $ = id => document.getElementById(id);
+const subsList = $('subsList');
+const serverState = $('serverState');
+const eventLog = $('eventLog');
+const statusNote = $('statusNote');
+
+function renderLocalSubscriptions(){
+  const list = JSON.parse(localStorage.getItem('demo_subs') || '[]');
+  subsList.innerHTML = '';
+  if(!list.length) {
+    subsList.innerHTML = '<div class="small">No local subscriptions yet. Subscribe above to test the flow.</div>';
+    return;
+  }
+  list.forEach(s => {
+    const el = document.createElement('div');
+    el.className = 'sub-item';
+    el.innerHTML = `
+      <div>
+        <div style="font-weight:700">${escapeHtml(s.channel)} ${s.verified?'<span style="color:#34d399;font-weight:800;font-size:12px;margin-left:8px">verified</span>':''}</div>
+        <div class="small">${escapeHtml(s.email)} ${s.display? '• ' + escapeHtml(s.display):''}</div>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center">
+        <div class="small">${new Date(s.ts).toLocaleString()}</div>
+        <button class="ghost" data-id="${s.id}">Remove</button>
+      </div>
+    `;
+    el.querySelector('button.ghost').addEventListener('click', () => {
+      const arr = JSON.parse(localStorage.getItem('demo_subs') || '[]').filter(x => x.id !== s.id);
+      localStorage.setItem('demo_subs', JSON.stringify(arr));
+      renderLocalSubscriptions(); updateServerView(); appendEventLog({type:'local_removed', id:s.id});
+    });
+    subsList.appendChild(el);
+  });
+}
+
+function appendEventLog(e){
+  // update event display from server as well
+  eventLog.textContent = JSON.stringify(SERVER.getState().events.slice(0,50), null, 2);
+}
+
+function updateServerView(){
+  const st = SERVER.getState();
+  serverState.textContent = JSON.stringify({
+    subscriptions_count: st.subscriptions.length,
+    attempts_keys: Object.keys(st.attempts).length,
+    resetAt: new Date(st.resetAt).toLocaleString()
+  }, null, 2);
+  appendEventLog();
+}
+
+/* form handling */
+$('subscribeBtn').addEventListener('click', async () => {
+  statusNote.textContent = 'Validating...';
+  const channel = $('channel').value;
+  const email = $('email').value.trim().toLowerCase();
+  const display = $('display').value.trim();
+  const plan = $('plan').value;
+  const captchaChecked = $('fakeCaptcha').checked;
+
+  // Client-side validation
+  if(!email || !validateEmail(email)){ alert('Please enter a valid email'); statusNote.textContent='Ready'; return; }
+  if(!captchaChecked){ alert('Please complete the anti-bot check (demo)'); statusNote.textContent='Ready'; return; }
+
+  // Simulated server request with delay
+  statusNote.textContent = 'Contacting server...';
+  await sleep(600 + Math.random()*600);
+  // Ask simulated server to accept (server enforces rate limits)
+  const res = SERVER.acceptSubscription({ email, channel, display, plan });
+  if(!res.ok){
+    alert('Subscription blocked: ' + res.reason);
+    statusNote.textContent = 'Blocked: ' + res.reason;
+    updateServerView();
+    return;
+  }
+  // add to local demo storage (unverified)
+  const rec = { id: res.record.id, email: res.record.email, channel: res.record.channel, display: res.record.display, plan: res.record.plan, ts: res.record.ts, verified: false };
+  const arr = JSON.parse(localStorage.getItem('demo_subs') || '[]');
+  arr.unshift(rec);
+  localStorage.setItem('demo_subs', JSON.stringify(arr));
+  renderLocalSubscriptions();
+  statusNote.textContent = 'Subscription created — check email to verify (simulate)';
+  updateServerView();
+});
+
+$('verifyBtn').addEventListener('click', async () => {
+  // In real app, user clicks verification link in email; here we ask to pick one local unverified subscription
+  const arr = JSON.parse(localStorage.getItem('demo_subs') || '[]').filter(x => !x.verified);
+  if(!arr.length){ alert('No unverified local subscriptions to simulate.'); return; }
+  const pick = arr[0];
+  // Simulate clicking verification link
+  await sleep(400);
+  const res = SERVER.verifySubscription(pick.id);
+  if(!res.ok){ alert('Verification failed: ' + res.reason); return; }
+  // update local
+  const local = JSON.parse(localStorage.getItem('demo_subs') || '[]').map(s => s.id === pick.id ? {...s, verified:true} : s);
+  localStorage.setItem('demo_subs', JSON.stringify(local));
+  renderLocalSubscriptions(); updateServerView();
+  statusNote.textContent = 'Email verified (simulated)';
+});
+
+$('clearLocal').addEventListener('click', () => {
+  if(!confirm('Clear local demo subscriptions?')) return;
+  localStorage.removeItem('demo_subs');
+  renderLocalSubscriptions(); appendEventLog({type:'cleared_local'});
+});
+
+$('resetServer').addEventListener('click', () => {
+  if(!confirm('Reset simulated server state?')) return;
+  SERVER.reset();
+  updateServerView();
+  statusNote.textContent = 'Simulated server reset';
+});
+
+function sleep(ms){ return new Promise(res => setTimeout(res, ms)); }
+function validateEmail(e){ return /\S+@\S+\.\S+/.test(e); }
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// initial render
+renderLocalSubscriptions();
+updateServerView();
+
+/* show server state periodically for demo */
+setInterval(()=> { updateServerView(); }, 2000);
+
+/* End of demo script */
 </script>
 </body>
 </html>
